@@ -4,15 +4,18 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
 public class Pair {
-    private Player player;
+    private Player player = null;
     private int key;
-    private Player next;
+    private Pair next = null;
 
     private final static Gson gson = new GsonBuilder().setPrettyPrinting().create();
 
     public Pair(Player player, int key) {
         this.player = player;
         this.key = key;
+    }
+
+    public Pair() {
     }
 
     public Player getPlayer() {
@@ -31,11 +34,11 @@ public class Pair {
         this.key = key;
     }
 
-    public Player getNext() {
+    public Pair getNext() {
         return next;
     }
 
-    public void setNext(Player next) {
+    public void setNext(Pair next) {
         this.next = next;
     }
 
