@@ -1,5 +1,9 @@
 package test;
-import Dijkstra.*;
+import utils.*;
+import Dijkstra.Room;
+import Dijkstra.Connection;
+import Hashmap.Player;
+
 import com.google.gson.Gson;
 import com.google.gson.stream.JsonReader;
 
@@ -24,6 +28,14 @@ public class testJsonRead {
             return;
 
         for(Connection aux : connections)
+            System.out.println(aux.toString());
+
+        // PLAYERS
+        Player[] players = utils.playersFromJson(args[2]);
+        if(players == null)
+            return;
+
+        for(Player aux : players)
             System.out.println(aux.toString());
     }
 }
