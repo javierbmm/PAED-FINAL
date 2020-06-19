@@ -17,25 +17,40 @@ public class Hashmap {
         table = new Pair[numBuckets];
     }
 
-    private int _hashf(String id){
-        int hash = 7;
-        int length = id.length();
-        for(int i=0; i<length; i++)
-            hash = hash*31 + id.charAt(i);
+    public Pair[] getTable() {
+        return table;
+    }
 
-        return hash/numBuckets;
+    public int getNumBuckets() {
+        return numBuckets;
+    }
+
+    public int getBucketsInUse() {
+        return bucketsInUse;
+    }
+
+    private int _hashf(String id){
+        long hash = 7;
+        int length = id.length();
+        for(int i=0; i<length; i++) {
+            hash = hash * 31 + id.charAt(i);
+            hash %= Integer.MAX_VALUE;
+        }
+
+        int result = (int)hash%numBuckets;
+        return (int)result;
     }
 
     public Pair getPair(String playerName){
         Pair pair;
         int id = _hashf(playerName);
-        pair = table[id];
-        if(pair.getPlayer() == null)
+        if(_emptyBucket(id))
             return null;
 
+        pair = table[id];
         while(!pair.getPlayer().getName().equals(playerName)) {
             pair = pair.getNext();
-            if(pair.getPlayer() == null)
+            if(pair == null || pair.getPlayer() == null)
                 return null;
         }
 
@@ -43,11 +58,15 @@ public class Hashmap {
     }
 
     public int addPlayer(Player player){
+        if(player == null)
+            return -1;
+
         int key = _hashf(player.getName());
         Pair pair = new Pair(player, key);
 
         if(_emptyBucket(key)) {
             table[key] = pair;
+            bucketsInUse++;
             return key;
         }
 
