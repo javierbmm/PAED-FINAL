@@ -36,6 +36,83 @@ public class AVLTree<K extends Comparable<K>> {
         return current;
     }
 
+    public void insert(K key) {
+        this._insert(this.getRoot(), key);
+    }
+
+    public void delete(K key) {
+        this._delete(this.getRoot(), key);
+    }
+
+    private AVLTreeNode<K> _delete(AVLTreeNode<K> node, K key) {
+        //node is null nothing to delete
+        if(null == node) {
+            return node;
+        }
+
+        //check if we have the key at this node or whether its
+        //in the left or right subtree
+        if(0 < node.getData().compareTo(key)) {
+            //key is somewhere in the left subtree so delete recursively
+            node.setLeftChild(_delete(node.getLeftChild(), key));
+        }
+        else if(0 > node.getData().compareTo(key)) {
+            //key is somewhere in the right subtree so search for it and
+            //delete recursively
+            node.setRightChild(_delete(node.getRightChild(), key));
+        }
+        else {
+            if(null == node.getLeftChild() || null == node.getRightChild()) {
+                node = (null == node.getLeftChild()) ? node.getRightChild() : node.getLeftChild();
+            }
+            else {
+                AVLTreeNode<K> leftMost = this.getLeftMostChild(node.getRightChild());
+                node.setData(leftMost.getData());
+                node.setRightChild(this._delete(node.getRightChild(), key));
+            }
+        }
+
+        if(node != null) {
+            node = this.balanceTree(node);
+        }
+
+        return node;
+    }
+
+    private AVLTreeNode<K> getLeftMostChild(AVLTreeNode<K> node) {
+        AVLTreeNode<K> tmp = node;
+
+        while(null != tmp.getLeftChild()) {
+            tmp = tmp.getLeftChild();
+        }
+
+        return tmp;
+    }
+
+    private AVLTreeNode<K> _insert(AVLTreeNode<K> node, K key) {
+        //tree is empty so return new node with the first data point
+        if(null == node) {
+            return new AVLTreeNode<K>(key);
+        }
+        //tree is not empty so decide which subtree it needs to go to
+        else if(0 < node.getData().compareTo(key)) {
+            //new point is headed towards the left subtree from this node
+            //so insert to the left node recursively
+            node.setLeftChild(this._insert(node.getLeftChild(), key));
+        }
+        else if(0 > node.getData().compareTo(key)) {
+            //new point is headed towards the right subtree from this node
+            //so insert to the right node recursively
+            node.setRightChild(this._insert(node.getRightChild(), key));
+        }
+        else {
+            throw new RuntimeException("AVL Tree cannot contain duplicate keys!");
+        }
+
+        //rebalance tree
+        return this.balanceTree(node);
+    }
+
     private void updateNodeHeight(@NotNull AVLTreeNode<K> node) {
         int newHeight = 1 + Math.max(
                 this.getNodeHeight(node.getLeftChild()),
