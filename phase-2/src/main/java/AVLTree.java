@@ -9,7 +9,20 @@ public class AVLTree<K extends Comparable<K>> {
         this.root = null;
         this.size = 0;
     }
-    public AVLTreeNode<K> find(@NotNull K object) {
+
+    public boolean isEmpty() {
+        return null == root;
+    }
+
+    public boolean contains(@NotNull K object) {
+        return null == this._find(object);
+    }
+
+    private AVLTreeNode<K> _find(@NotNull K object) {
+        if(null == this.root) {
+            return null;
+        }
+
         AVLTreeNode<K> current = this.root;
 
         //loop until we'eve found an object equal in order
@@ -37,17 +50,24 @@ public class AVLTree<K extends Comparable<K>> {
     }
 
     public void insert(K key) {
-        this._insert(this.getRoot(), key);
+        if(null == this.root) {
+            AVLTreeNode<K> newRoot = new AVLTreeNode<>(key);
+            updateNodeHeight(newRoot);
+            this.root = newRoot;
+        }
+        else {
+            this.root = this._insert(this.getRoot(), key);
+        }
     }
 
     public void delete(K key) {
-        this._delete(this.getRoot(), key);
+        this.root = this._delete(this.getRoot(), key);
     }
 
     private AVLTreeNode<K> _delete(AVLTreeNode<K> node, K key) {
         //node is null nothing to delete
         if(null == node) {
-            return node;
+            return null;
         }
 
         //check if we have the key at this node or whether its
@@ -92,7 +112,7 @@ public class AVLTree<K extends Comparable<K>> {
     private AVLTreeNode<K> _insert(AVLTreeNode<K> node, K key) {
         //tree is empty so return new node with the first data point
         if(null == node) {
-            return new AVLTreeNode<K>(key);
+            return new AVLTreeNode<>(key);
         }
         //tree is not empty so decide which subtree it needs to go to
         else if(0 < node.getData().compareTo(key)) {
@@ -115,21 +135,21 @@ public class AVLTree<K extends Comparable<K>> {
 
     private void updateNodeHeight(@NotNull AVLTreeNode<K> node) {
         int newHeight = 1 + Math.max(
-                this.getNodeHeight(node.getLeftChild()),
-                this.getNodeHeight(node.getRightChild())
+                this.height(node.getLeftChild()),
+                this.height(node.getRightChild())
         );
 
         node.setHeight(newHeight);
     }
 
-    private int getNodeHeight(@Nullable AVLTreeNode<K> node) {
+    private int height(@Nullable AVLTreeNode<K> node) {
         return node == null ? -1 : node.getHeight();
     }
 
     private int getBalance(@Nullable AVLTreeNode<K> node) {
         return node == null ?
                 0 :
-                (this.getNodeHeight(node.getRightChild()) - this.getNodeHeight(node.getLeftChild()));
+                (this.height(node.getRightChild()) - this.height(node.getLeftChild()));
     }
 
     private AVLTreeNode<K> leftRotation(@NotNull AVLTreeNode<K> rotationRoot) {
@@ -170,13 +190,13 @@ public class AVLTree<K extends Comparable<K>> {
 
             //if the right node's right node's height is bigger than the
             //right node's left node's height then we need a left rotation
-            if(this.getNodeHeight(rootRightRight) > this.getNodeHeight(rootRightLeft)) {
+            if(this.height(rootRightRight) > this.height(rootRightLeft)) {
                 treeNode = this.leftRotation(treeNode);
             }
             else {
 
                 //we need to apply two rotations
-                treeNode.setRightChild(this.rightRotation(treeNode));
+                treeNode.setRightChild(this.rightRotation(treeNode.getRightChild()));
                 treeNode = leftRotation(treeNode);
             }
         }
@@ -188,11 +208,11 @@ public class AVLTree<K extends Comparable<K>> {
 
             //if height of left node's left node is greater than the height
             //of the left node's right node then we apply right rotation
-            if(this.getNodeHeight(leftLeft) > this.getNodeHeight(leftRight)) {
+            if(this.height(leftLeft) > this.height(leftRight)) {
                 treeNode = this.rightRotation(treeNode);
             }
             else {
-                treeNode.setLeftChild(treeNode.getLeftChild());
+                treeNode.setLeftChild(this.leftRotation(treeNode.getLeftChild()));
                 treeNode = this.rightRotation(treeNode);
             }
         }
