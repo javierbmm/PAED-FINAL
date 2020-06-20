@@ -18,6 +18,17 @@ public class AVLTree<K extends Comparable<? super K>> {
         return null != this._find(object);
     }
 
+    public K get(K object) {
+        AVLTreeNode<K> node = _find(object);
+        K data = null;
+
+        if(null != node) {
+            data = node.getData();
+        }
+
+        return data;
+    }
+
     private AVLTreeNode<K> _find(@NotNull K object) {
         if(null == this.root) {
             return null;
@@ -32,11 +43,11 @@ public class AVLTree<K extends Comparable<? super K>> {
             if(0 > current.getData().compareTo(object)) {
 
                 //go to left subtree
-                current = current.getLeftChild();
+                current = current.getRightChild();
             }
             else {
                 //go to right subtree
-                current = current.getRightChild();
+                current = current.getLeftChild();
             }
 
             //current is null so the item is not in the tree

@@ -4,6 +4,10 @@ public class Item implements Comparable<Item> {
     private String name;
     private int price;
 
+    public Item(int price) {
+        this(null, price);
+    }
+
     public Item(String name, int value) {
         this.name = name;
         this.price = value;
