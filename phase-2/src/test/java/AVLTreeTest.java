@@ -97,12 +97,13 @@ class AVLTreeTest {
     void insert() {
         assertTrue(this.tree.isEmpty());
         /**16,24,36,19,44,28,61,74,83,64,52,65,86,93,88**/
-        this.insertValues(16,24,36,19,44,28,61,74,83,64);
+        this.insertValues(16,24,36,19,44,28,61,74,83,64,52,65,86,93,88);
 
         assertTrue(this.isBalanced(this.tree.getRoot()));
         assertTrue(this.isWellOrdered(this.tree.getRoot()));
 
         //check that tree is well balanced after removing node
+
         this.tree.delete(88);
         assertTrue(this.isBalanced(tree.getRoot()));
         assertTrue(this.isWellOrdered(tree.getRoot()));

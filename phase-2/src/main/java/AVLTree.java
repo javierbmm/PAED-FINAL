@@ -1,7 +1,7 @@
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class AVLTree<K extends Comparable<K>> {
+public class AVLTree<K extends Comparable<? super K>> {
     private AVLTreeNode<K> root;
     private int size;
 
@@ -15,7 +15,7 @@ public class AVLTree<K extends Comparable<K>> {
     }
 
     public boolean contains(@NotNull K object) {
-        return null == this._find(object);
+        return null != this._find(object);
     }
 
     private AVLTreeNode<K> _find(@NotNull K object) {
@@ -50,14 +50,7 @@ public class AVLTree<K extends Comparable<K>> {
     }
 
     public void insert(K key) {
-        if(null == this.root) {
-            AVLTreeNode<K> newRoot = new AVLTreeNode<>(key);
-            updateNodeHeight(newRoot);
-            this.root = newRoot;
-        }
-        else {
-            this.root = this._insert(this.getRoot(), key);
-        }
+        this.root = this._insert(this.getRoot(), key);
     }
 
     public void delete(K key) {
@@ -112,7 +105,7 @@ public class AVLTree<K extends Comparable<K>> {
     private AVLTreeNode<K> _insert(AVLTreeNode<K> node, K key) {
         //tree is empty so return new node with the first data point
         if(null == node) {
-            return new AVLTreeNode<>(key);
+            node = new AVLTreeNode<>(key);
         }
         //tree is not empty so decide which subtree it needs to go to
         else if(0 < node.getData().compareTo(key)) {
