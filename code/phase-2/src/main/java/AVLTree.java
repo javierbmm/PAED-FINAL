@@ -229,4 +229,11 @@ public class AVLTree<K extends Comparable<? super K>> {
     public void setSize(int size) {
         this.size = size;
     }
+
+    @Override
+    public String toString() {
+        return "AVLTree{" + "root=" + root +
+                ", size=" + size +
+                '}';
+    }
 }

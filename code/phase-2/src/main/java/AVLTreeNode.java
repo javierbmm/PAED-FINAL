@@ -48,4 +48,14 @@ public class AVLTreeNode<T> {
     public void setHeight(int height) {
         this.height = height;
     }
+
+    @Override
+    public String toString() {
+        return "AVLTreeNode{" + "data=" + data +
+                ", leftChild=" + leftChild +
+                ", rightChild=" + rightChild +
+                ", balance=" + balance +
+                ", height=" + height +
+                '}';
+    }
 }

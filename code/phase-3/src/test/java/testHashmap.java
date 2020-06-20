@@ -1,13 +1,12 @@
 package test;
 
 import Hashmap.*;
-import utils.utils;
 
 import java.util.Scanner;
 
 public class testHashmap {
     public static void main(String[] args) {
-        Player[] players = utils.playersFromJson(args[2]);
+        Player[] players = utils.utils.playersFromJson(args[2]);
         if(players == null)
             return;
 
