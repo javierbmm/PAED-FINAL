@@ -58,4 +58,16 @@ public class MapObject {
     public int getY2() {
         return y2;
     }
+
+    @Override
+    public String toString() {
+        final StringBuilder sb = new StringBuilder("MapObject{");
+        sb.append("id=").append(id);
+        sb.append(", x1=").append(x1);
+        sb.append(", x2=").append(x2);
+        sb.append(", y1=").append(y1);
+        sb.append(", y2=").append(y2);
+        sb.append('}');
+        return sb.toString();
+    }
 }

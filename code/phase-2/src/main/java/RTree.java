@@ -1,7 +1,5 @@
 import java.util.*;
-import java.util.function.BinaryOperator;
-import java.util.function.Consumer;
-import java.util.function.Predicate;
+import java.util.function.*;
 
 public class RTree<K> {
     private static final int[] BASE_DIMS = {1,1};
@@ -289,7 +287,6 @@ public class RTree<K> {
     private int getRequiredExpansion(int[] coordinates, int[] size, RTreeNode<K> node) {
         int area = size[0] * size[1];
         int[] deltas = new int[2];
-
         for (int i = 0; i < coordinates.length; i++) {
             if (coordinates[i] + size[i] < node.getCoordinates()[i] + node.getSize()[i])
                 deltas[i] = node.getCoordinates()[i] + node.getSize()[i] - coordinates[i] - size[i];

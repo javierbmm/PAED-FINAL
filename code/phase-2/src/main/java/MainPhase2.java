@@ -3,6 +3,7 @@ import com.google.gson.stream.JsonReader;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 public class MainPhase2 {
     public static void main(String[] args) {
@@ -44,5 +45,28 @@ public class MainPhase2 {
         ShopController controller = new ShopController(shop, view);
         controller.execute();
 
+
+        String inputBuffer = view.getQueryResponse("What do you wanna do? ");
+        while(!"exit".equalsIgnoreCase(inputBuffer)) {
+            switch (inputBuffer) {
+                case "1":
+                    int x = Integer.parseInt(view.getQueryResponse("Enter X coordinate: "));
+                    int y = Integer.parseInt(view.getQueryResponse("Enter Y coordinate: "));
+
+                    List<MapObject> mapObjectsNear = map.search(x, y);
+
+                    if(mapObjectsNear.size() > 0)
+                        System.out.println("Hit! Item with ID " + mapObjectsNear + " found at those coordinates!");
+                    else
+                        System.out.println("Miss, no item found at those coordinates...");
+
+                    break;
+                case "2":
+                    break;
+                default:
+                    view.displayError("Unknown option1");
+            }
+            inputBuffer = view.getQueryResponse("What do you wanna do? ");
+        }
     }
 }
