@@ -36,7 +36,7 @@ public class MapObject {
     }
 
     public int[] getSize() {
-        return new int[]{1, 1};
+        return new int[]{x2 - x1, y1 - y2};
     }
 
     public int getId() {

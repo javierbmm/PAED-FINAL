@@ -20,6 +20,14 @@ public class RTreeNode<K> {
         this.object = object;
     }
 
+    public void setCoordinates(int[] coordinates) {
+        this.coordinates = coordinates;
+    }
+
+    public void setSize(int[] size) {
+        this.size = size;
+    }
+
     public K getObject() {
         return object;
     }

@@ -1,21 +1,25 @@
 import java.util.*;
+import java.util.function.BinaryOperator;
+import java.util.function.Consumer;
+import java.util.function.Predicate;
 
 public class RTree<K> {
-    private static final int n_max_entries = 3;
-    private static final int n_min_entries = 1;
+    private static final int[] BASE_DIMS = {1,1};
+    private static final int MAX_ENTRIES = 3;
+    private static final int MIN_ENTRIES = 1;
 
     private RTreeNode<K> root;
 
 
     public RTree() {
-        root = initRoot(true);
+        this.root = newRoot(true);
     }
 
     public RTreeNode<K> getRoot() {
-        return root;
+        return this.root;
     }
 
-    private RTreeNode<K> initRoot(boolean is_leaf) {
+    private RTreeNode<K> newRoot(boolean is_leaf) {
         int[] coordinates = new int[2];
         int[] size = new int[2];
         coordinates[0] = (int) Math.sqrt(Integer.MAX_VALUE);
@@ -28,32 +32,34 @@ public class RTree<K> {
 
     public List<K> search(int x, int y) {
         LinkedList<K> results = new LinkedList<>();
-        _search(new int[]{x, y}, new int[]{1, 1}, root, results);
+        _search(new int[]{x, y}, BASE_DIMS, this.root, results);
         return results;
     }
 
     private void _search(int[] coords, int[] dimensions, RTreeNode<K> root, LinkedList<K> results) {
-        if (root.isLeaf()) {
-            for (RTreeNode<K> node : root.getChildren()) {
-                if (overlap(coords, dimensions, node.getCoordinates(), node.getSize()))
-                    results.add(node.getObject());
-            }
-        } else {
-            for (RTreeNode<K> node : root.getChildren()) {
-                if (overlap(coords, dimensions, node.getCoordinates(), node.getSize()))
-                    _search(coords, dimensions, node, results);
-            }
-        }
+        Consumer<RTreeNode<K>> overlapAction = root.isLeaf() ?
+                (node) -> results.add(node.getObject()) :
+                (node) -> _search(coords, dimensions, node, results);
+
+        Predicate<RTreeNode<K>> overlapPredicate =
+                (node) -> overlap(coords, dimensions, node.getCoordinates(), node.getSize());
+
+        root
+                .getChildren()
+                .stream()
+                .filter(overlapPredicate)
+                .forEachOrdered(overlapAction);
     }
 
     public boolean delete(int x, int y) {
-        return _delete(new int[]{x, y}, new int[]{1, 1}, root);
+        return _delete(new int[]{x, y}, BASE_DIMS, this.root);
     }
 
 
     private boolean _delete(int[] coords, int[] dimensions, RTreeNode<K> node) {
         boolean found = false;
-        if (node.isLeaf()) {
+
+        if(node.isLeaf()) {
             for (int i = 0; i < node.getChildren().size(); i++) {
                 RTreeNode<K> child = node.getChildren().get(i);
                 if (overlap(coords, dimensions, child.getCoordinates(), child.getSize())) {
@@ -61,80 +67,83 @@ public class RTree<K> {
                     return true;
                 }
             }
-        } else {
+        }
+        else {
             for (int i = 0; i < node.getChildren().size() && !found; i++) {
                 RTreeNode<K> child = node.getChildren().get(i);
                 if (overlap(coords, dimensions, child.getCoordinates(), child.getSize()))
                     found = _delete(coords, dimensions, child);
             }
         }
-
         return found;
     }
 
-    public void insert(int x1, int y2, int[] size, K rectangle) {
-        int[] coordinates = new int[2];
-        coordinates[0] = x1;
-        coordinates[1] = y2;
+    public void insert(int x1, int y2, int[] size, K object) {
+        int[] coordinates = new int[]{x1, y2};
+        RTreeNode<K> entry = new RTreeNode<>(coordinates, size, true, object);
+        RTreeNode<K> leaf = chooseLeaf(this.root, entry);
 
-        RTreeNode<K> entry = new RTreeNode<>(coordinates, size, true, rectangle);
-        RTreeNode<K> leaf = chooseLeaf(root, entry);
         leaf.getChildren().add(entry);
         entry.parent = leaf;
 
-        if (leaf.getChildren().size() > n_max_entries) {
+        if (leaf.getChildren().size() > MAX_ENTRIES) {
             ArrayList<RTreeNode<K>> splits = splitNode(leaf);
-            adjustTree(splits.get(0), splits.get(1));
+            this.adjustTree(splits.get(0), splits.get(1));
         } else {
-            adjustTree(leaf, null);
+            this.adjustTree(leaf, null);
         }
     }
 
-    private boolean overlap(int[] target_coordinates, int[] target_size, int[] coordinates, int[] size) {
-        boolean overlapX = false, overlapY = false;
-        if (target_coordinates[0] == coordinates[0])
-            overlapX = true;
-        else if (target_coordinates[0] < coordinates[0]) {
-            if (target_coordinates[0] + target_size[0] >= coordinates[0])
-                overlapX = true;
-        } else {
-            if (coordinates[0] + size[0] >= target_coordinates[0])
-                overlapX = true;
-        }
-        if (!overlapX)
-            return false;
+    private boolean overlapOneDim(int t_coord, int t_size, int coord, int size) {
+        return t_coord == coord ?
+                t_coord + t_size >= coord :
+                coord + size >= t_coord;
+    }
 
-        if (target_coordinates[1] == coordinates[1])
-            overlapY = true;
-        else if (target_coordinates[1] < coordinates[1]) {
-            if (target_coordinates[1] + target_size[1] >= coordinates[1])
-                overlapY = true;
-        } else {
-            if (coordinates[1] + size[1] >= target_coordinates[1])
-                overlapY = true;
+    private boolean overlap(int[] t_coords, int[] t_size, int[] coords, int[] size) {
+        boolean overlap;
+        for(int i = 0; i < t_coords.length; i++) {
+            overlap = this.overlapOneDim(t_coords[i], t_size[i], coords[i], size[i]);
+
+            if(!overlap) {
+                return false;
+            }
         }
-        if (!overlapY)
-            return false;
 
         return true;
     }
 
+    private void makeParentChild(RTreeNode<K> parent, RTreeNode<K> child) {
+        parent.getChildren().add(child);
+        child.parent = parent;
+    }
+
+    private void splitRoot(RTreeNode<K> node1, RTreeNode<K> node2) {
+        this.root = newRoot(false);
+        this.makeParentChild(this.root, node1);
+        this.makeParentChild(this.root, node2);
+    }
+
+    private void adjustAtRoot(RTreeNode<K> node2) {
+        if (null != node2) {
+            this.splitRoot(this.root, node2);
+        }
+
+        this.tighten(this.root);
+    }
+
     private void adjustTree(RTreeNode<K> node1, RTreeNode<K> node2) {
-        if (node1 == root) {
-            if (node2 != null) {
-                root = initRoot(false);
-                root.getChildren().add(node1);
-                node1.parent = root;
-                root.getChildren().add(node2);
-                node2.parent = root;
-            }
-            tighten(root);
+        if (this.root == node1) {
+            this.adjustAtRoot(node2);
             return;
         }
+
         tighten(node1);
-        if (node2 != null) {
+
+        if (null != node2) {
             tighten(node2);
-            if (node1.parent.getChildren().size() > n_max_entries) {
+
+            if (null != node1.parent && node1.parent.getChildren().size() > MAX_ENTRIES) {
                 ArrayList<RTreeNode<K>> splits = splitNode(node1.parent);
                 adjustTree(splits.get(0), splits.get(1));
             }
@@ -159,11 +168,11 @@ public class RTree<K> {
 
 
         while (!children.isEmpty()) {
-            if ((nodes.get(0).getChildren().size() >= n_min_entries) && (nodes.get(1).getChildren().size() + children.size() == n_min_entries)) {
+            if ((nodes.get(0).getChildren().size() >= MIN_ENTRIES) && (nodes.get(1).getChildren().size() + children.size() == MIN_ENTRIES)) {
                 nodes.get(1).getChildren().addAll(children);
                 children.clear();
                 return nodes;
-            } else if ((nodes.get(1).getChildren().size() >= n_min_entries) && (nodes.get(1).getChildren().size() + children.size() == n_min_entries)) {
+            } else if ((nodes.get(1).getChildren().size() >= MIN_ENTRIES) && (nodes.get(1).getChildren().size() + children.size() == MIN_ENTRIES)) {
                 nodes.get(0).getChildren().addAll(children);
                 children.clear();
                 return nodes;
@@ -215,30 +224,41 @@ public class RTree<K> {
             dimension_min_upper_bound = Integer.MAX_VALUE;
 
             RTreeNode<K> max_lower_bound = null, min_upper_bound = null;
+
             for (RTreeNode<K> node : nodes) {
-                if (node.getCoordinates()[i] < dimension_lower_bound)
-                    dimension_lower_bound = node.getCoordinates()[i];
-                if (node.getSize()[i] + node.getCoordinates()[i] > dimension_upper_bound)
-                    dimension_upper_bound = node.getSize()[i] + node.getCoordinates()[i];
+                dimension_lower_bound = Math.min(node.getCoordinates()[i], dimension_lower_bound);
+                dimension_upper_bound = Math.max(node.getSize()[i] + node.getCoordinates()[i], dimension_upper_bound);
+
                 if (node.getCoordinates()[i] > dimension_max_lower_bound) {
                     dimension_max_lower_bound = node.getCoordinates()[i];
                     max_lower_bound = node;
                 }
+
                 if (node.getSize()[i] + node.getCoordinates()[i] < dimension_min_upper_bound) {
                     dimension_min_upper_bound = node.getSize()[i] + node.getCoordinates()[i];
                     min_upper_bound = node;
                 }
             }
-            int pair = Math.abs((dimension_min_upper_bound - dimension_max_lower_bound) / (dimension_upper_bound - dimension_lower_bound));
+            int pair = this.getPair(
+                    dimension_min_upper_bound,
+                    dimension_upper_bound,
+                    dimension_max_lower_bound,
+                    dimension_lower_bound
+            );
+
             if (pair >= best_pair_value) {
                 best_pairs.add(max_lower_bound);
                 best_pairs.add(min_upper_bound);
                 best_pair_value = pair;
             }
         }
-        nodes.remove(best_pairs.get(0));
-        nodes.remove(best_pairs.get(1));
+
+        best_pairs.forEach(nodes::remove);
         return best_pairs;
+    }
+
+    private int getPair(int d_min_upper_bound, int d_upper_bound, int d_max_lower_bound, int d_lower_bound) {
+        return Math.abs((d_min_upper_bound - d_max_lower_bound) / (d_upper_bound - d_lower_bound));
     }
 
     private RTreeNode<K> chooseLeaf(RTreeNode<K> n, RTreeNode<K> e) {
@@ -268,9 +288,9 @@ public class RTree<K> {
 
     private int getRequiredExpansion(int[] coordinates, int[] size, RTreeNode<K> node) {
         int area = size[0] * size[1];
-        int expanded = 1;
         int[] deltas = new int[2];
-        for (int i = 0; i < 2; i++) {
+
+        for (int i = 0; i < coordinates.length; i++) {
             if (coordinates[i] + size[i] < node.getCoordinates()[i] + node.getSize()[i])
                 deltas[i] = node.getCoordinates()[i] + node.getSize()[i] - coordinates[i] - size[i];
             else if (coordinates[i] + size[i] > node.getCoordinates()[i] + node.getSize()[i])
@@ -279,7 +299,7 @@ public class RTree<K> {
         for (int i = 0; i < 2; i++)
             area *= size[i] + deltas[i];
 
-        return expanded - area;
+        return 1 - area;
     }
 
     private void tighten(RTreeNode<K> node) {
@@ -288,21 +308,16 @@ public class RTree<K> {
 
         for (int i = 0; i < min_coordinates.length; i++) {
             min_coordinates[i] = Integer.MAX_VALUE;
-            max_size[i] = 0;
 
             for (RTreeNode<K> child : node.getChildren()) {
                 child.parent = node;
-                if (child.getCoordinates()[i] < min_coordinates[i]) {
-                    min_coordinates[i] = child.getCoordinates()[i];
-                }
-                if ((child.getCoordinates()[i] + child.getSize()[i]) > max_size[i]) {
-                    max_size[i] = (child.getCoordinates()[i] + child.getSize()[i]);
-                }
+                min_coordinates[i] = Math.min(child.getCoordinates()[i], min_coordinates[i]);
+                max_size[i] = Math.max((child.getCoordinates()[i] + child.getSize()[i]), max_size[i]);
             }
         }
 
-        System.arraycopy(min_coordinates, 0, node.getCoordinates(), 0, min_coordinates.length);
-        System.arraycopy(max_size, 0, node.getSize(), 0, max_size.length);
+        node.setCoordinates(min_coordinates);
+        node.setSize(max_size);
     }
 
     @Override
