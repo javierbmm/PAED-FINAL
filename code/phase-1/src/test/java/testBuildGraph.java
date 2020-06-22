@@ -1,4 +1,3 @@
-package test;
 import Dijkstra.*;
 
 import java.util.ArrayList;
@@ -7,7 +6,7 @@ public class testBuildGraph {
 
     public static void main(String[] args) {
         // ROOMS:
-        Room[] rooms = utils.roomsFromJson(args[1]);
+        /*Room[] rooms = utils.roomsFromJson(args[1]);
         if(rooms == null)
             return;
 
@@ -38,7 +37,7 @@ public class testBuildGraph {
         }
         Path path = Dijkstra.getShortestPath(graph, 1, 53);
         System.out.println("Finished");
-        System.out.println(path.toString());
+        System.out.println(path.toString());*/
     }
 
 }

@@ -19,4 +19,9 @@ public class ConsoleFormView  {
         System.out.println(message);
         return scanner.nextLine();
     }
+
+    public int getIntResponse(String message) {
+        System.out.println(message);
+        return scanner.nextInt();
+    }
 }

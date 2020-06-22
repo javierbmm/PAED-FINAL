@@ -1,12 +1,13 @@
-package test;
-
 import Hashmap.*;
+import com.google.gson.Gson;
+import com.google.gson.stream.JsonReader;
 
 import java.util.Scanner;
 
 public class testHashmap {
     public static void main(String[] args) {
-        Player[] players = utils.utils.playersFromJson(args[2]);
+        JsonReader players_reader = utils._getReader(args[2]);
+        Player[] players = new Gson().fromJson(players_reader, Player[].class);
         if(players == null)
             return;
 
