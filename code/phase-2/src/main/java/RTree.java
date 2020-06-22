@@ -5,6 +5,9 @@ public class RTree<K> {
     private static final int[] BASE_DIMS = {1,1};
     private static final int MAX_ENTRIES = 3;
     private static final int MIN_ENTRIES = 1;
+    private static final int[] BASE_COORDS = new int[]{(int) Math.sqrt(Integer.MAX_VALUE),  (int) Math.sqrt(Integer.MAX_VALUE)};
+    private static final int[] BASE_SIZE
+            = new int[]{-2 * (int) Math.sqrt(Integer.MAX_VALUE), -2 * (int) Math.sqrt(Integer.MAX_VALUE)};
 
     private RTreeNode<K> root;
 
@@ -18,14 +21,7 @@ public class RTree<K> {
     }
 
     private RTreeNode<K> newRoot(boolean is_leaf) {
-        int[] coordinates = new int[2];
-        int[] size = new int[2];
-        coordinates[0] = (int) Math.sqrt(Integer.MAX_VALUE);
-        size[0] = -2 * (int) Math.sqrt(Integer.MAX_VALUE);
-        coordinates[1] = (int) Math.sqrt(Integer.MAX_VALUE);
-        size[1] = -2 * (int) Math.sqrt(Integer.MAX_VALUE);
-
-        return new RTreeNode<>(coordinates, size, is_leaf, null);
+        return new RTreeNode<>(BASE_COORDS, BASE_SIZE, is_leaf, null);
     }
 
     public List<K> search(int x, int y) {
